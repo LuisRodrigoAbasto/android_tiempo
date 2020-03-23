@@ -1,0 +1,97 @@
+def BOOLEAN = "boolean"
+def STRING = "String"
+def INT = "int"
+def TRUE = "true"
+def FALSE = "false"
+def DEBUG_MODE = "DEBUG_MODE"
+
+ext.BOOLEAN = BOOLEAN
+ext.STRING = STRING
+ext.INT = INT
+ext.TRUE = TRUE
+ext.FALSE = FALSE
+ext.DEBUG_MODE = DEBUG_MODE
+
+def WEATHER_API = "weather_api"
+ext.WEATHER_API = WEATHER_API
+
+def addRepos(RepositoryHandler handler)
+{
+    handler.google()
+    handler.jcenter()
+}
+
+ext.addRepos = this.&addRepos
+
+
+def getCustomProperty(key) {
+    Properties props = new Properties()
+    def propFile = file('../config/config.properties')
+
+    if(propFile.canRead())
+    {
+        props.load(new FileInputStream(propFile))
+        if(props != null && props.containsKey(key))
+        {
+            println 'My Key ' + key + ':: ' + props[key]
+            return props[key]
+        }
+        else {
+            println 'MyHR.properties ' + key + ' found but some entries are missing'
+        }
+    }
+}
+ext.getCustomProperty = this.&getCustomProperty
+
+def getAPIKey(key) {
+    Properties props = new Properties()
+    def proFile=file("../carpeta_segura/API_key.properties")
+
+    if(propFile.canRead())
+    {
+        props.load(new FileInputStream(propFile))
+        if(props != null && props.containsKey(key))
+        {
+            println 'My API Key ' + key + ':: ' + props[key]
+            return props[key]
+        }
+        else {
+            println 'API_key.properties ' + key + ' found but some entries are missing'
+        }
+    }
+    else {
+        println 'API_key.properties ' + key + ' found but some entries are missing'
+    }
+    return null
+}
+ext.getAPIKey = this.&getAPIKey
+
+def generateSignature()
+{
+    Properties props=new Properties()
+    def proFile=file('../carpeta_segura/key.properties')
+    if(proFile.canRead())
+    {
+        props.load(new FileInputStream(proFile))
+        if(props != null &&
+                props.containsKey('STORE_FILE') &&
+                props.containsKey('STORE_PASSWORD') &&
+                props.containsKey('KEY_ALIAS') &&
+                props.containsKey('KEY_PASSWORD'))
+        {
+            android.signingConfigs.defaultKey.storeFile=file(props['STORE_FILE'])
+            android.signingConfigs.defaultKey.storePassword=props['STORE_PASSWORD']
+            android.signingConfigs.defaultKey.keyAlias=props['KEY_ALIAS']
+            android.signingConfigs.defaultKey.keyPassword=props['KEY_PASSWORD']
+        }
+        else {
+            println 'key.properties found but some entries are missing'
+            android.buildTypes.debug.signingConfig=null
+        }
+    }
+    else{
+        println 'key.properties not found'
+        android.buildTypes.release.signingConfig=null
+    }
+}
+ext.generateSignature = this.&generateSignature
